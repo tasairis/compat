@@ -20,6 +20,6 @@ Big frameworks like Angular and Vue and React are too much. Sorry. That qualifie
 
 # About compat-data
 
-The site is designed to load its data from the remote "compat-data" source, which is deliberately written to use [JSONP](https://en.wikipedia.org/wiki/JSONP). The data it provides is "documented" in [compat-data.d.ts](compat-data.d.ts).
+The site is designed to load its data from the remote "compat-data" source, which is deliberately written to use [JSONP](https://en.wikipedia.org/wiki/JSONP). The data it provides is "documented" in [compat-data.ts](compat-data.ts).
 
 Changes to the data can be requested (here - PRs to its repository will not be accepted) but will be highly scrutinized. All of the potentially useful data should already be available; if there's something missing then you can certainly request it, and I won't be offended if you do, however understand that I've probably already considered it and decided against for one reason or another.
