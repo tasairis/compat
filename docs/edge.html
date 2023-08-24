@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+	<head>
+		<title>[EDGE] tasairis's SE Compatibility Tracking - Detailed View</title>
+		<style>
+			body[data-loading] .not-loading, body:not([data-loading]) .loading { display: none; }
+			table { border-collapse: collapse; }
+			table thead { background: #000; color: #fff; position: sticky; top: 0; }
+			table thead th { white-space: nowrap; }
+			table tbody tr:nth-child(2n) { background: #eee; }
+			table tbody tr + tr { border-top: 1px solid #ccc; }
+		</style>
+	</head>
+
+	<body data-nsfw="nsfw" data-deleted="hide" data-req="" data-loading>
+		<h1>Loading data sources...</h1>
+		<table id="table" class="not-loading">
+			<thead>
+				<tr>
+					<th>ID</th>
+					<th>SE Status</th>
+					<th>LL Category</th>
+					<th>Mod</th>
+					<th>URL</th>
+					<th>SE/LE<br>Compatible?</th>
+					<th>Last Seen</th>
+					<th>Last Updated</th>
+				</tr>
+			</thead>
+		</table>
+	</body>
+
+	<script>
+		function compat_progress(mods, mtotal, sources, stotal) {
+			console.debug(`⬇️ Received source ${sources} of ${stotal}...`);
+			document.querySelector("h1").innerText = `Loaded data source ${sources} of ${stotal}...`;
+		}
+
+		function compat_loaded1(info) {
+			const { date, skyrim, data, sources } = info;
+
+			console.info(`✅ All data received: ${data.length} mods; last updated ${date}; supports Skyrim SE ${skyrim}`);
+
+			document.querySelector("h1").innerText = `Processing ${data.length} mods...`;
+			setTimeout(() => compat_loaded2(info), 10);
+		}
+
+		function compat_loaded2(info) {
+			const { data } = info;
+			data.sort((a, b) => a.name_sort.localeCompare(b.name_sort));
+
+			console.debug("⚙️ Beginning processing of mods...");
+
+			const timer = Date.now();
+
+			const td = (text) => {
+				const td = document.createElement("TD");
+				td.innerText = text;
+				return td;
+			};
+
+			const tbody = document.createElement("TBODY");
+
+			let i = 0;
+			for (const { id, slug, name, status, ll_url, ll_category, compat_se, compat_le, ll_lastseen, ll_lastupdated } of data) {
+				const tr = document.createElement("TR");
+				tr.id = slug;
+
+				tr.appendChild(td(id));
+				tr.appendChild(td(status));
+				tr.appendChild(td(ll_category));
+				tr.appendChild(td(name));
+				tr.appendChild(td(ll_url || ""));
+				tr.appendChild(td(`${compat_se} / ${compat_le}`));
+				tr.appendChild(td(ll_lastseen ? new Date(ll_lastseen).toLocaleDateString() : ""));
+				tr.appendChild(td(ll_lastupdated ? new Date(ll_lastupdated).toLocaleDateString() : ""));
+
+				tbody.appendChild(tr);
+
+				if ((++i % 1000) == 0) {
+					console.debug(`⌛ ...${i}...`);
+				}
+			}
+
+			console.info(`✅ Processing complete (${Date.now() - timer} ms)`);
+
+			document.querySelector("h1").innerText = "Rendering...";
+			setTimeout(() => compat_loaded3(tbody, info), 10);
+		}
+
+		function compat_loaded3(tbody, info) {
+			document.querySelector("#table").appendChild(tbody);
+			delete document.body.dataset.loading;
+
+			document.querySelector("h1").innerText = `${info.date} - Skyrim SE/AE ${info.skyrim} - ${info.data.length} mods`;
+		}
+	</script>
+	<script src="https://tasairis.github.io/compat-data/entry.js" crossorigin="anonymous" async data-jsonp="compat_loaded1" data-progressp="compat_progress"></script>
+</html>
