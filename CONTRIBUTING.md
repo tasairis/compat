@@ -6,7 +6,7 @@ Primary branch is **master**.
 
 Indentation for all code files is **tabs** (fight me) and there is an `.editorconfig` file to support this.
 
-The public site is hosted out of `/docs` and consists of an `index.html` plus other supporting files. It can be viewed online at https://tasairis.github.io/compat/. It can (must be) also functional when running locally, both through a web server (not included) as well as a `file:///` URI.
+The public site is hosted out of `/docs` and consists of an `index.html` plus other supporting files. It can be viewed online at https://tasairis.github.io/compat/. It can be (must be) also functional when running locally, both through a web server (not included) as well as a `file:///` URI.
 
 Supporting files must be all "Web 1.0" static files, suitable for being hosted by GitHub Pages; this means Javascript and CSS and not Typescript or LESS/SCSS. Given the nature of this repository and its website, anything requiring a post-commit build process is considered to be over-engineering.
 
