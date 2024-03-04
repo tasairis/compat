@@ -321,8 +321,6 @@
 				}
 				relevant.sort((a, b) => a.id == id ? -1 : b.id == id ? 1 : a.sortable.localeCompare(b.sortable));
 
-				console.log(relevant);
-
 				while (popup.childNodes.length) {
 					popup.childNodes[0].remove();
 				}
@@ -357,5 +355,5 @@
 			});
 		}
 	</script>
-	<script src="https://tasairis.github.io/compat-data/entry.js" crossorigin="anonymous" async data-jsonp="compat_loaded1" data-progressp="compat_progress"></script>
+	<script src="/compat-data/entry.js" crossorigin="anonymous" async data-jsonp="compat_loaded1" data-progressp="compat_progress"></script>
 </html>
