@@ -4,6 +4,9 @@
 		<title>tasairis's SE Compatibility Tracking - Detailed View</title>
 		<style>
 			body[data-loading] .not-loading, body:not([data-loading]) .loading { display: none; }
+			h1[data-errors]:hover { cursor: help; }
+			h1[data-errors = "1"]::after { content: "⚠️ 1 error"; }
+			h1[data-errors]:not([data-errors = "1"])::after { content: "⚠️ " attr(data-errors) " errors"; }
 			table { border-collapse: collapse; }
 			table td { padding: 3px; }
 			table th { background: #000; color: #fff; padding: 3px; text-align: left; }
@@ -170,15 +173,21 @@
 			};
 		}
 
-		function compat_progress(mods, mtotal, sources, stotal) {
-			console.debug(`⬇️ Received source ${sources} of ${stotal}...`);
-			document.querySelector("h1").innerText = `Loaded data source ${sources} of ${stotal}...`;
+		function compat_progress(name, error, mods, mtotal, sources, stotal, _data) {
+			const h1 = document.querySelector("h1");
+			if (error) {
+				console.warn(`⬇️ Fetch ${name} failed:`, error);
+				h1.setAttribute("data-errors", +(h1.dataset.errors ?? 0) + 1);
+			} else {
+				console.debug(`⬇️ Fetch ${name} success (${sources} / ${stotal})`);
+				h1.innerText = `Loaded data source ${sources} of ${stotal}...`;
+			}
 		}
 
 		async function compat_loaded1(info) {
 			const { date, skyrim, data, sources } = info;
 
-			console.info(`✅ All data received: ${data.length} mods; last updated ${date}; supports Skyrim SE ${skyrim}`);
+			console.info(`✅ Loading complete (${data.length} mods; last updated ${date}; supports Skyrim SE ${skyrim})`);
 
 			document.querySelector("h1").innerText = `Processing ${data.length} mods...`;
 
@@ -202,7 +211,8 @@
 			const tbody = el("TBODY");
 
 			let i = 0;
-			for (const { id, canonical, category, game, href, note, sortable, status, tag, title, updated, version } of data) {
+			for (const entry of data) {
+				const { id, canonical, category, game, href, status, title, updated } = entry;
 				if (id != canonical) {
 					continue;
 				}
@@ -230,7 +240,7 @@
 				}));
 
 				tr.appendChild(el("TD", td => {
-					td.dataset.sort = sortable;
+					td.dataset.sort = entry.sortable;
 
 					td.append(`${icon(game, status)} `);
 					if (others.length) {
@@ -246,8 +256,14 @@
 						td.append(title);
 					}
 
-					if (note) {
+					if (entry.obsolete_successor || entry.obsolete_alternative || entry.obsolete_reason) {
+						td.append(" ☠️");
+					}
+					if (entry.note) {
 						td.append(" 📝");
+					}
+					if (entry.other_link) {
+						td.append(" 🔗");
 					}
 
 					for (const other of others) {
@@ -277,7 +293,7 @@
 				}
 			}
 
-			console.info(`✅ Processing complete (${Date.now() - timer} ms)`);
+			console.info(`✅ Processing complete (${Date.now() - timer} ms, ${i} canonical)`);
 
 			document.querySelector("h1").innerText = "Rendering...";
 
@@ -337,13 +353,54 @@
 					});
 
 					details.querySelectorAll("ul.notes").forEach(ul => {
+						if (mod.obsolete_successor || mod.obsolete_alternative || mod.obsolete_reason) {
+							ul.appendChild(el("LI", li => {
+								li.append("Mod is obsolete:");
+								li.appendChild(el("UL", ul2 => {
+									if (mod.obsolete_reason) {
+										ul2.appendChild(el("LI", li2 => {
+											li2.innerText = mod.obsolete_reason.join("; ");
+										}));
+									}
+									if (mod.obsolete_successor) {
+										ul2.appendChild(el("LI", li2 => {
+											li2.innerText = (mod.obsolete_successor.length > 1 ? "Successors" : "Successor") + ": " + mod.obsolete_successor.join("; ");
+										}));
+									}
+									if (mod.obsolete_alternative) {
+										ul2.appendChild(el("LI", li2 => {
+											li2.innerText = (mod.obsolete_alternative.length > 1 ? "Alternatives" : "Alternative") + ": " + mod.obsolete_alternative.join("; ");
+										}));
+									}
+								}));
+							}));
+						}
+
 						if (mod.note) {
 							mod.note.forEach(note => {
 								ul.appendChild(el("LI", li => {
 									li.innerText = note;
 								}));
 							});
-						} else {
+						}
+
+						if (mod.other_link) {
+							ul.appendChild(el("LI", li => {
+								li.append("Other links:");
+								li.appendChild(el("UL", ul2 => {
+									mod.other_link.forEach(({ text, href }) => {
+										ul2.appendChild(el("LI", li2 => {
+											li2.appendChild(el("A", a => {
+												a.href = href;
+												a.innerText = text ?? href;
+											}));
+										}));
+									});
+								}));
+							}));
+						}
+
+						if (!ul.childNodes.length) {
 							ul.remove();
 						}
 					});
